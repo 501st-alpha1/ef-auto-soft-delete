@@ -1,74 +1,74 @@
 public class SoftDeleteInterceptor : IDbCommandTreeInterceptor
 {
-    public const string IsDeletedColumnName = "IsDeleted";
+  public const string IsDeletedColumnName = "IsDeleted";
 
-    public void TreeCreated(DbCommandTreeInterceptionContext interceptionContext)
+  public void TreeCreated(DbCommandTreeInterceptionContext interceptionContext)
+  {
+    if (interceptionContext.OriginalResult.DataSpace != DataSpace.SSpace)
     {
-        if (interceptionContext.OriginalResult.DataSpace != DataSpace.SSpace)
-        {
-            return;
-        }
-
-        var queryCommand = interceptionContext.Result as DbQueryCommandTree;
-        if (queryCommand != null)
-        {
-            interceptionContext.Result = HandleQueryCommand(queryCommand);
-        }
-
-        var deleteCommand = interceptionContext.OriginalResult as DbDeleteCommandTree;
-        if (deleteCommand != null)
-        {
-            interceptionContext.Result = HandleDeleteCommand(deleteCommand);
-        }
+      return;
     }
 
-    private static DbCommandTree HandleDeleteCommand(DbDeleteCommandTree deleteCommand)
+    var queryCommand = interceptionContext.Result as DbQueryCommandTree;
+    if (queryCommand != null)
     {
-        var setClauses = new List<DbModificationClause>();
-        var table = (EntityType) deleteCommand.Target.VariableType.EdmType;
-
-        if (table.Properties.All(p => p.Name != IsDeletedColumnName))
-        {
-          return deleteCommand;
-        }
-
-        setClauses.Add(DbExpressionBuilder.SetClause(
-            deleteCommand.Target.VariableType.Variable(deleteCommand.Target.VariableName).Property(IsDeletedColumnName),
-            DbExpression.FromBoolean(true)));
-
-        return new DbUpdateCommandTree(
-            deleteCommand.MetadataWorkspace,
-            deleteCommand.DataSpace,
-            deleteCommand.Target,
-            deleteCommand.Predicate,
-            setClauses.AsReadOnly(), null);
+      interceptionContext.Result = HandleQueryCommand(queryCommand);
     }
 
-    private static DbCommandTree HandleQueryCommand(DbQueryCommandTree queryCommand)
+    var deleteCommand = interceptionContext.OriginalResult as DbDeleteCommandTree;
+    if (deleteCommand != null)
     {
-        var newQuery = queryCommand.Query.Accept(new SoftDeleteQueryVisitor());
-        return new DbQueryCommandTree(
-            queryCommand.MetadataWorkspace,
-            queryCommand.DataSpace,
-            newQuery);
+      interceptionContext.Result = HandleDeleteCommand(deleteCommand);
+    }
+  }
+
+  private static DbCommandTree HandleDeleteCommand(DbDeleteCommandTree deleteCommand)
+  {
+    var setClauses = new List<DbModificationClause>();
+    var table = (EntityType) deleteCommand.Target.VariableType.EdmType;
+
+    if (table.Properties.All(p => p.Name != IsDeletedColumnName))
+    {
+      return deleteCommand;
     }
 
-    public class SoftDeleteQueryVisitor : DefaultExpressionVisitor
-    {
-        public override DbExpression Visit(DbScanExpression expression)
-        {
-            var table = (EntityType)expression.Target.ElementType;
-            if (table.Properties.All(p => p.Name != IsDeletedColumnName))
-            {
-                return base.Visit(expression);
-            }
+    setClauses.Add(DbExpressionBuilder.SetClause(
+        deleteCommand.Target.VariableType.Variable(deleteCommand.Target.VariableName).Property(IsDeletedColumnName),
+        DbExpression.FromBoolean(true)));
 
-            var binding = expression.Bind();
-            return binding.Filter(
-                binding.VariableType
-                    .Variable(binding.VariableName)
-                    .Property(IsDeletedColumnName)
-                    .NotEqual(DbExpression.FromBoolean(true)));
-        }
+    return new DbUpdateCommandTree(
+        deleteCommand.MetadataWorkspace,
+        deleteCommand.DataSpace,
+        deleteCommand.Target,
+        deleteCommand.Predicate,
+        setClauses.AsReadOnly(), null);
+  }
+
+  private static DbCommandTree HandleQueryCommand(DbQueryCommandTree queryCommand)
+  {
+    var newQuery = queryCommand.Query.Accept(new SoftDeleteQueryVisitor());
+    return new DbQueryCommandTree(
+        queryCommand.MetadataWorkspace,
+        queryCommand.DataSpace,
+        newQuery);
+  }
+
+  public class SoftDeleteQueryVisitor : DefaultExpressionVisitor
+  {
+    public override DbExpression Visit(DbScanExpression expression)
+    {
+      var table = (EntityType)expression.Target.ElementType;
+      if (table.Properties.All(p => p.Name != IsDeletedColumnName))
+      {
+        return base.Visit(expression);
+      }
+
+      var binding = expression.Bind();
+      return binding.Filter(
+          binding.VariableType
+              .Variable(binding.VariableName)
+              .Property(IsDeletedColumnName)
+              .NotEqual(DbExpression.FromBoolean(true)));
     }
+  }
 }
