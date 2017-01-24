@@ -38,21 +38,19 @@ public class SoftDeleteInterceptor : IDbCommandTreeInterceptor
     var value = DbExpression.FromBoolean(true);
     setClauses.Add(DbExpressionBuilder.SetClause(property, value));
 
-    return new DbUpdateCommandTree(
-        deleteCommand.MetadataWorkspace,
-        deleteCommand.DataSpace,
-        deleteCommand.Target,
-        deleteCommand.Predicate,
-        setClauses.AsReadOnly(), null);
+    return new DbUpdateCommandTree(deleteCommand.MetadataWorkspace,
+                                   deleteCommand.DataSpace,
+                                   deleteCommand.Target,
+                                   deleteCommand.Predicate,
+                                   setClauses.AsReadOnly(), null);
   }
 
   private static DbCommandTree HandleQueryCommand(DbQueryCommandTree queryCommand)
   {
     var newQuery = queryCommand.Query.Accept(new SoftDeleteQueryVisitor());
-    return new DbQueryCommandTree(
-        queryCommand.MetadataWorkspace,
-        queryCommand.DataSpace,
-        newQuery);
+
+    return new DbQueryCommandTree(queryCommand.MetadataWorkspace,
+                                  queryCommand.DataSpace, newQuery);
   }
 
   public class SoftDeleteQueryVisitor : DefaultExpressionVisitor
@@ -66,11 +64,11 @@ public class SoftDeleteInterceptor : IDbCommandTreeInterceptor
       }
 
       var binding = expression.Bind();
-      return binding.Filter(
-          binding.VariableType
-              .Variable(binding.VariableName)
-              .Property(IsDeletedColumnName)
-              .NotEqual(DbExpression.FromBoolean(true)));
+
+      return binding.Filter(binding.VariableType
+                                   .Variable(binding.VariableName)
+                                   .Property(IsDeletedColumnName)
+                                   .NotEqual(DbExpression.FromBoolean(true)));
     }
   }
 }
