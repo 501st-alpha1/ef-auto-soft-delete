@@ -32,9 +32,11 @@ public class SoftDeleteInterceptor : IDbCommandTreeInterceptor
       return deleteCommand;
     }
 
-    setClauses.Add(DbExpressionBuilder.SetClause(
-        deleteCommand.Target.VariableType.Variable(deleteCommand.Target.VariableName).Property(IsDeletedColumnName),
-        DbExpression.FromBoolean(true)));
+    var varName = deleteCommand.Target.VariableName;
+    var variable = deleteCommand.Target.VariableType.Variable(varName);
+    var property = variable.Property(IsDeletedColumnName);
+    var value = DbExpression.FromBoolean(true);
+    setClauses.Add(DbExpressionBuilder.SetClause(property, value));
 
     return new DbUpdateCommandTree(
         deleteCommand.MetadataWorkspace,
