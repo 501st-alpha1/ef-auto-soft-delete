@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{53D7ACB5-6BD5-4614-BF40-72F383B9FEC3}") = "EFAutoSoftDelete", "EFAutoSoftDelete/EFAutoSoftDelete.csproj", "{D56CD91D-E6DE-477D-B456-670ED4C67E5A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D56CD91D-E6DE-477D-B456-670ED4C67E5A}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{D56CD91D-E6DE-477D-B456-670ED4C67E5A}.Debug|Any CPU.Build.0 = Debug|x86
+		{D56CD91D-E6DE-477D-B456-670ED4C67E5A}.Release|Any CPU.ActiveCfg = Release|x86
+		{D56CD91D-E6DE-477D-B456-670ED4C67E5A}.Release|Any CPU.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
